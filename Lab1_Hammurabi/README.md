@@ -25,7 +25,7 @@ const int kReignLenth = 10;
 ```
 
 ### Логика игры
-Для псевдо-рандомной генерации чисел был использован std::default_random_engine
+Для псевдо-рандомной генерации чисел был использован std::default_random_engine.
 Все логика игры разделена не несколько функций:
 ```
 void CalculateResourcesAndEvents(City& city, Gameplay& gameplay, PlayerDecision& decision):
