@@ -28,26 +28,26 @@ const int kReignLenth = 10;
 Для псевдо-рандомной генерации чисел был использован std::default_random_engine.
 Все логика игры разделена не несколько функций:
 ```
-void CalculateResourcesAndEvents(City& city, Gameplay& gameplay, PlayerDecision& decision):
-Вычисление псевдо-рандомных значений и изменение количества ресурсов для последующего вывода статистики советником
+// Вычисление псевдо-рандомных значений и изменение количества ресурсов для последующего вывода статистики советником
+void CalculateResourcesAndEvents(City& city, Gameplay& gameplay, PlayerDecision& decision);
 
-void AdviserReport(City& city, Gameplay& gameplay):
-  Доклад советника с собранной статистикой
-  
-template <typename T> void InputVar(T& input):
-  Ввод переменной, чтобы не плодить много схожих обработок неправильного ввода пользователя
-  
-void InputPlayerDecision(City& city, Gameplay& gameplay, PlayerDecision& decision):
-  Ввод решений игрока в каждом раунде
-  
-void SummarizeReign(City& city, Gameplay& gameplay):
-  Вывод результата качества правления игрока
-  
-void SaveGame(City& city, Gameplay& gameplay):
-  Сохранить прогресс в файл
-  
-void LoadGame(City& city, Gameplay& gameplay):
-  Загрузить прогресс из файла
+// Доклад советника с собранной статистикой
+void AdviserReport(City& city, Gameplay& gameplay);
+
+// Ввод переменной, чтобы не плодить много схожих обработок неправильного ввода пользователя
+template <typename T> void InputVar(T& input);
+
+// Ввод решений игрока в каждом раунде
+void InputPlayerDecision(City& city, Gameplay& gameplay, PlayerDecision& decision);
+
+// Вывод результата качества правления игрока
+void SummarizeReign(City& city, Gameplay& gameplay);
+
+// Сохранить прогресс в файл
+void SaveGame(City& city, Gameplay& gameplay);
+
+// Загрузить прогресс из файла
+void LoadGame(City& city, Gameplay& gameplay);
 ```
 
 ## Пример вывода программы (сохранение сделано на этом примере)
