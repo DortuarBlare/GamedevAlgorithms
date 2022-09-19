@@ -34,7 +34,7 @@ void CalculateResourcesAndEvents(City& city, Gameplay& gameplay, PlayerDecision&
 // Доклад советника с собранной статистикой
 void AdviserReport(City& city, Gameplay& gameplay);
 
-// Ввод переменной, чтобы не плодить много схожих обработок неправильного ввода пользователя
+// Шаблонный ввод переменной, чтобы не плодить много схожих обработок неправильного ввода пользователя
 template <typename T> void InputVar(T& input);
 
 // Ввод решений игрока в каждом раунде
