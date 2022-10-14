@@ -1,6 +1,8 @@
 ﻿#include <iostream>
 #include <fstream>
+#include <sstream>
 #include <random>
+#include <string>
 
 const float kMinRatCoef = 0.0f;
 const float kMaxRatCoef = 0.07f;
@@ -19,18 +21,6 @@ struct City {
     int citizens;
     int wheatBushels;
     int landAcres;
-
-    void SaveToBinary(std::fstream& os) {
-        os.write((char*)&citizens, sizeof(int));
-        os.write((char*)&wheatBushels, sizeof(int));
-        os.write((char*)&landAcres, sizeof(int));
-    }
-
-    void LoadFromBinary(std::fstream& os) {
-        os.read((char*)&citizens, sizeof(int));
-        os.read((char*)&wheatBushels, sizeof(int));
-        os.read((char*)&landAcres, sizeof(int));
-    }
 };
 
 struct Gameplay {
@@ -45,32 +35,6 @@ struct Gameplay {
     bool loss;
     float diedPercent;
     float averageDiedPercent;
-
-    void SaveToBinary(std::fstream& os) {
-        os.write((char*)&roundNumber, sizeof(int));
-        os.write((char*)&citizensDied, sizeof(int));
-        os.write((char*)&newCitizens, sizeof(int));
-        os.write((char*)&plague, sizeof(bool));
-        os.write((char*)&harvestedWheatBushels, sizeof(int));
-        os.write((char*)&wheatBushelsPerAcre, sizeof(int));
-        os.write((char*)&acrePrice, sizeof(int));
-        os.write((char*)&loss, sizeof(bool));
-        os.write((char*)&diedPercent, sizeof(float));
-        os.write((char*)&averageDiedPercent, sizeof(float));
-    }
-
-    void LoadFromBinary(std::fstream& os) {
-        os.read((char*)&roundNumber, sizeof(int));
-        os.read((char*)&citizensDied, sizeof(int));
-        os.read((char*)&newCitizens, sizeof(int));
-        os.read((char*)&plague, sizeof(bool));
-        os.read((char*)&harvestedWheatBushels, sizeof(int));
-        os.read((char*)&wheatBushelsPerAcre, sizeof(int));
-        os.read((char*)&acrePrice, sizeof(int));
-        os.read((char*)&loss, sizeof(bool));
-        os.read((char*)&diedPercent, sizeof(float));
-        os.read((char*)&averageDiedPercent, sizeof(float));
-    }
 };
 
 struct PlayerDecision {
@@ -80,15 +44,16 @@ struct PlayerDecision {
     int acresToSeed;
 }; 
 
-void CalculateResourcesAndEvents(City& city, Gameplay& gameplay, PlayerDecision& decision);
-void AdviserReport(City& city, Gameplay& gameplay);
-template <typename T> void InputVar(T& input);
-void InputPlayerDecision(City& city, Gameplay& gameplay, PlayerDecision& decision);
-void SummarizeReign(City& city, Gameplay& gameplay);
-void SaveGame(City& city, Gameplay& gameplay);
-void LoadGame(City& city, Gameplay& gameplay);
+void CalculateResourcesAndEvents(City&, Gameplay&, PlayerDecision&);
+void AdviserReport(City&, Gameplay&);
+template <typename T> void InputVar(T&);
+void InputPlayerDecision(City&, Gameplay&, PlayerDecision&);
+void SummarizeReign(City&, Gameplay&);
+void SaveGame(City&, Gameplay&);
+void LoadGame(City&, Gameplay&);
+std::string SplitStringRightPart(std::string, const char);
 
-std::string savePath = "GameSave.dat";
+std::string savePath = "GameSave.txt";
 std::default_random_engine randGenerator;
 
 int main() {
@@ -213,8 +178,6 @@ void InputPlayerDecision(City& city, Gameplay& gameplay, PlayerDecision& decisio
     std::cout << std::endl << "Что пожелаешь, повелитель?" << std::endl;
 
     while (!enoughResources) {
-        tempWheat = city.wheatBushels;
-
         if (gameplay.roundNumber > 0) {
             std::cout << "Желаешь ли на время прервать игру? (1 - Да, 0 - Нет) ";
             InputVar(exitGame);
@@ -224,6 +187,8 @@ void InputPlayerDecision(City& city, Gameplay& gameplay, PlayerDecision& decisio
                 exit(0);
             }
         }
+
+        tempWheat = city.wheatBushels;
 
         std::cout << "Сколько акров земли повелеваешь купить? ";
         InputVar(decision.acresToBuy);
@@ -288,19 +253,68 @@ void SummarizeReign(City& city, Gameplay& gameplay) {
 }
 
 void SaveGame(City& city, Gameplay& gameplay) {
-    std::fstream binarySave(savePath, std::ios::out | std::ios::trunc | std::ios::binary);
-    city.SaveToBinary(binarySave);
-    gameplay.SaveToBinary(binarySave);
-    binarySave.close();
+    std::ofstream os(savePath, std::ios::out | std::ios::trunc);
+
+    if (os.is_open()) {
+        os << "Citizens: " << city.citizens << std::endl;
+        os << "Wheat bushels: " << city.wheatBushels << std::endl;
+        os << "Land acres: " << city.landAcres << std::endl;
+
+        os << "Round number: " << gameplay.roundNumber << std::endl;
+        os << "Citizens died: " << gameplay.citizensDied << std::endl;
+        os << "New citizens: " << gameplay.newCitizens << std::endl;
+        os << "Plague: " << gameplay.plague << std::endl;
+        os << "Harvested wheat bushels: " << gameplay.harvestedWheatBushels << std::endl;
+        os << "Wheat bushels per acre: " << gameplay.wheatBushelsPerAcre << std::endl;
+        os << "Acre price: " << gameplay.acrePrice << std::endl;
+        os << "DiedPercent: " << gameplay.diedPercent << std::endl;
+        os << "Average died percent: " << gameplay.averageDiedPercent << std::endl;
+    }
+
+    os.close();
 }
 
 void LoadGame(City& city, Gameplay& gameplay) {
-    std::fstream binarySave(savePath, std::ios::in | std::ios::binary);
+    std::string str;
+    std::ifstream is(savePath, std::ios::in);
 
-    if (binarySave.is_open()) {
-        city.LoadFromBinary(binarySave);
-        gameplay.LoadFromBinary(binarySave);
+    if (is.is_open()) {
+        std::getline(is, str);
+        city.citizens = std::stoi(SplitStringRightPart(str, ':'));
+        std::getline(is, str);
+        city.wheatBushels = std::stoi(SplitStringRightPart(str, ':'));
+        std::getline(is, str);
+        city.landAcres = std::stoi(SplitStringRightPart(str, ':'));
+
+        std::getline(is, str);
+        gameplay.roundNumber = std::stoi(SplitStringRightPart(str, ':'));
+        std::getline(is, str);
+        gameplay.citizensDied = std::stoi(SplitStringRightPart(str, ':'));
+        std::getline(is, str);
+        gameplay.newCitizens = std::stoi(SplitStringRightPart(str, ':'));
+        std::getline(is, str);
+        gameplay.plague = std::stoi(SplitStringRightPart(str, ':'));
+        std::getline(is, str);
+        gameplay.harvestedWheatBushels = std::stoi(SplitStringRightPart(str, ':'));
+        std::getline(is, str);
+        gameplay.wheatBushelsPerAcre = std::stoi(SplitStringRightPart(str, ':'));
+        std::getline(is, str);
+        gameplay.acrePrice = std::stoi(SplitStringRightPart(str, ':'));
+        std::getline(is, str);
+        gameplay.diedPercent = std::stof(SplitStringRightPart(str, ':'));
+        std::getline(is, str);
+        gameplay.averageDiedPercent = std::stof(SplitStringRightPart(str, ':'));
     }
 
-    binarySave.close();
+    is.close();
+}
+
+std::string SplitStringRightPart(std::string strToSplit, const char delimeter) {
+    std::string result;
+    std::stringstream ss(strToSplit);
+
+    std::getline(ss, result, delimeter);
+    std::getline(ss, result, delimeter);
+
+    return result.erase(0, 1);
 }
