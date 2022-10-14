@@ -58,6 +58,7 @@ std::default_random_engine randGenerator;
 
 int main() {
     setlocale(LC_ALL, "RU");
+    setlocale(LC_NUMERIC, "C");
     randGenerator.seed(time(NULL));
 
     bool loadGame = false;
