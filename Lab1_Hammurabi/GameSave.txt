@@ -1,0 +1,12 @@
+Citizens: 135
+Wheat bushels: 3572
+Land acres: 1110
+Round number: 5
+Citizens died: 47
+New citizens: 35
+Plague: 0
+Harvested wheat bushels: 3330
+Wheat bushels per acre: 3
+Acre price: 17
+DiedPercent: 0.319728
+Average died percent: 0.319728
