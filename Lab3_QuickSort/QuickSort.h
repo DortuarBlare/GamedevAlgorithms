@@ -1,6 +1,6 @@
 #pragma once
 
-const int kSizeForInsertionSort = 40; // Экспериментально найденное значение
+const int kSizeForInsertionSort = 40;
 
 template<typename T, typename Compare>
 void InsertionSort(T* first, T* last, Compare compare) {
@@ -20,9 +20,9 @@ void InsertionSort(T* first, T* last, Compare compare) {
 template<typename T, typename Compare>
 T FindPivot(T& a, T& b, T& c, Compare compare) {
     if ((compare(a, b) && compare(c, a)) || (compare(a, c) && compare(b, a)))
-        return a; // c < a < b или b < a < c
+        return a; // c < a < b ГЁГ«ГЁ b < a < c
     else if ((compare(b, a) && compare(c, b)) || (compare(b, c) && compare(a, b)))
-        return b; // c < b < a или a < b < c
+        return b; // c < b < a ГЁГ«ГЁ a < b < c
     else
         return c;
 }
