@@ -9,8 +9,8 @@ private:
 	T* items;
 	int size;
 	int capacity;
-	const int defaultCapacity = 8;
-	const int resizeCoef = 2;
+	static const int defaultCapacity = 8;
+	static const int kResizeCoef = 2;
 
 	template<bool Const, bool Reverse>
 	class Iterator {
@@ -72,16 +72,17 @@ public:
 	Iterator<false, true> reverseIterator();
 	Iterator<true, true> reverseIterator() const;
 
-	Array& operator=(Array& other); // Copy
+	Array& operator=(const Array& other); // Copy
 	Array& operator=(Array&& other); // Move
 	const T& operator[](int index) const;
 	T& operator[](int index);
 
 private:
 	void resize();
-	void deepCopy(Array& other);
+	void deepCopy(const Array& other);
 	T* allocate(size_t capacity);
 	T* allocateWithInit(int size, size_t capacity);
+	void destruct();
 };
 
 template<typename T>
@@ -123,10 +124,7 @@ inline Array<T>::Array(Array&& other) {
 
 template<typename T>
 inline Array<T>::~Array() {
-	for (int i = 0; i < size; i++)
-		items[i].~T();
-
-	std::free(items);
+	destruct();
 }
 
 
@@ -150,11 +148,11 @@ inline int Array<T>::insert(int index, const T& value) {
 	if (!items)
 		items = allocate(capacity);
 
-	new(items + size) T{};
-	std::move(items + index, items + size, items + index + 1);
+	for (int i = size; i > index; i--)
+		new(items + i) T(std::move(items[i - 1]));
 
-	//new(items + index) T(value);
-	items[index] = value;
+	items[index].~T();
+	new(items + index) T(value);
 	size++;
 
 	return index;
@@ -165,7 +163,10 @@ inline void Array<T>::remove(int index) {
 	if (size == 0)
 		throw "Array is empty";
 
-	std::move(items + index + 1, items + size, items + index);
+	for (int i = index; i < size - 1; i++)
+		items[i] = std::move(items[i + 1]);
+
+	items[size - 1].~T();
 	size--;
 }
 
@@ -203,10 +204,9 @@ inline Array<T>::Iterator<true, true> Array<T>::reverseIterator() const {
 
 // Copy
 template<typename T>
-inline Array<T>& Array<T>::operator=(Array& other) {
+inline Array<T>& Array<T>::operator=(const Array& other) {
 	if (this != &other) {
-		//std::free(items)
-		this->~Array();
+		destruct();
 		deepCopy(other);
 	}
 	return *this;
@@ -216,8 +216,8 @@ inline Array<T>& Array<T>::operator=(Array& other) {
 template<typename T>
 inline Array<T>& Array<T>::operator=(Array&& other) {
 	if (this != &other) {
-		//std::free(items);
-		this->~Array();
+		for (int i = 0; i < size; i++)
+			items[i].~T();
 
 		size = other.size;
 		capacity = other.capacity;
@@ -227,6 +227,7 @@ inline Array<T>& Array<T>::operator=(Array&& other) {
 		other.capacity = 0;
 		other.items = nullptr;
 	}
+
 	return *this;
 }
 
@@ -243,19 +244,24 @@ inline T& Array<T>::operator[](int index) {
 
 template<typename T>
 inline void Array<T>::resize() {
-	capacity *= resizeCoef;
-	T* temp = allocateWithInit(size, capacity);
-	std::move(items, items + size, temp);
+	capacity *= kResizeCoef;
+	T* temp = allocate(capacity);
+
+	for (int i = 0; i < size; i++)
+		new(temp + i) T(std::move(items[i]));
+
 	std::free(items);
 	items = temp;
 }
 
 template<typename T>
-inline void Array<T>::deepCopy(Array& other) {
+inline void Array<T>::deepCopy(const Array& other) {
 	size = other.size;
 	capacity = other.capacity;
-	items = allocateWithInit(size, capacity);
-	std::copy(other.items, other.items + size, items);
+	items = allocate(capacity);
+
+	for (int i = 0; i < other.getSize(); i++)
+		new(items + i) T(other[i]);
 }
 
 template<typename T>
@@ -264,11 +270,9 @@ inline T* Array<T>::allocate(size_t capacity) {
 }
 
 template<typename T>
-inline T* Array<T>::allocateWithInit(int size, size_t capacity) {
-	T* temp = static_cast<T*>(std::malloc(capacity * sizeof(T)));
-
+inline void Array<T>::destruct() {
 	for (int i = 0; i < size; i++)
-		new(temp + i) T{};
+		items[i].~T();
 
-	return temp;
+	std::free(items);
 }
