@@ -48,6 +48,47 @@ TEST(IntArrayTest, MoveConstructor) {
 	EXPECT_EQ(copiedArray[3], 40);
 }
 
+TEST(IntArrayTest, AssignCopyOperator) {
+	Array<int> array;
+	array.insert(10);
+	array.insert(20);
+	array.insert(30);
+	array.insert(40);
+
+	Array<int> assignedArray;
+	assignedArray.insert(100);
+	assignedArray.insert(200);
+
+	assignedArray = array;
+
+	ASSERT_EQ(array.getSize(), assignedArray.getSize());
+	ASSERT_EQ(array.getCapacity(), assignedArray.getCapacity());
+
+	for (int i = 0; i < array.getSize(); i++)
+		EXPECT_EQ(array[i], assignedArray[i]);
+}
+
+TEST(IntArrayTest, AssignMoveOperator) {
+	Array<int> array;
+	array.insert(10);
+	array.insert(20);
+	array.insert(30);
+	array.insert(40);
+
+	Array<int> assignedArray;
+	assignedArray.insert(100);
+	assignedArray.insert(200);
+
+	assignedArray = std::move(array);
+
+	ASSERT_EQ(assignedArray.getSize(), 4);
+	ASSERT_EQ(assignedArray.getCapacity(), 8);
+	EXPECT_EQ(assignedArray[0], 10);
+	EXPECT_EQ(assignedArray[1], 20);
+	EXPECT_EQ(assignedArray[2], 30);
+	EXPECT_EQ(assignedArray[3], 40);
+}
+
 TEST(IntArrayTest, Insert) {
 	Array<int> array;
 	array.insert(10);
@@ -62,18 +103,6 @@ TEST(IntArrayTest, Insert) {
 	EXPECT_EQ(array[3], 40);
 }
 
-TEST(IntArrayTest, InsertWithResize) {
-	Array<int> array;
-	for (int i = 1; i <= 10; i++)
-		array.insert(i * 10);
-
-	ASSERT_EQ(array.getSize(), 10);
-	ASSERT_EQ(array.getCapacity(), 16);
-
-	for (int i = 0, rightAnswer = 10; i < array.getSize(); i++, rightAnswer += 10)
-		EXPECT_EQ(array[i], rightAnswer);
-}
-
 TEST(IntArrayTest, InsertWithIndex) {
 	Array<int> array;
 	array.insert(10);
@@ -84,6 +113,19 @@ TEST(IntArrayTest, InsertWithIndex) {
 	EXPECT_EQ(array[0], 30);
 	EXPECT_EQ(array[1], 10);
 	EXPECT_EQ(array[2], 20);
+}
+
+TEST(IntArrayTest, InsertWithResize) {
+	Array<int> array;
+
+	for (int i = 1; i <= 10; i++)
+		array.insert(i * 10);
+
+	ASSERT_EQ(array.getSize(), 10);
+	ASSERT_EQ(array.getCapacity(), 16);
+
+	for (int i = 0, rightAnswer = 10; i < array.getSize(); i++, rightAnswer += 10)
+		EXPECT_EQ(array[i], rightAnswer);
 }
 
 TEST(IntArrayTest, Remove) {
@@ -175,6 +217,47 @@ TEST(StringArrayTest, MoveConstructor) {
 	EXPECT_EQ(copiedArray[3], "40");
 }
 
+TEST(StringArrayTest, AssignCopyOperator) {
+	Array <std::string> array;
+	array.insert("10");
+	array.insert("20");
+	array.insert("30");
+	array.insert("40");
+
+	Array<std::string> assignedArray;
+	assignedArray.insert("100");
+	assignedArray.insert("200");
+
+	assignedArray = array;
+
+	ASSERT_EQ(array.getSize(), assignedArray.getSize());
+	ASSERT_EQ(array.getCapacity(), assignedArray.getCapacity());
+
+	for (int i = 0; i < array.getSize(); i++)
+		EXPECT_EQ(array[i], assignedArray[i]);
+}
+
+TEST(StringArrayTest, AssignMoveOperator) {
+	Array <std::string> array;
+	array.insert("10");
+	array.insert("20");
+	array.insert("30");
+	array.insert("40");
+
+	Array<std::string> assignedArray;
+	assignedArray.insert("100");
+	assignedArray.insert("200");
+
+	assignedArray = std::move(array);
+
+	ASSERT_EQ(assignedArray.getSize(), 4);
+	ASSERT_EQ(assignedArray.getCapacity(), 8);
+	EXPECT_EQ(assignedArray[0], "10");
+	EXPECT_EQ(assignedArray[1], "20");
+	EXPECT_EQ(assignedArray[2], "30");
+	EXPECT_EQ(assignedArray[3], "40");
+}
+
 TEST(StringArrayTest, Insert) {
 	Array<std::string> array;
 	array.insert("10");
@@ -201,18 +284,31 @@ TEST(StringArrayTest, InsertWithIndex) {
 	EXPECT_EQ(array[2], "20");
 }
 
+TEST(StringArrayTest, InsertWithResize) {
+	Array<std::string> array;
+
+	for (int i = 1; i <= 10; i++)
+		array.insert(std::to_string(i * 10));
+
+	ASSERT_EQ(array.getSize(), 10);
+	ASSERT_EQ(array.getCapacity(), 16);
+
+	for (int i = 0, rightAnswer = 10; i < array.getSize(); i++, rightAnswer += 10)
+		EXPECT_EQ(array[i], std::to_string(rightAnswer));
+}
+
 TEST(StringArrayTest, Remove) {
 	Array<std::string> array;
-	array.insert("10");
-	array.insert("20");
-	array.insert("30");
-	array.insert("40");
+	array.insert("100000000000000000000000000000000000000000000000000000");
+	array.insert("200000000000000000000000000000000000000000000000000000");
+	array.insert("300000000000000000000000000000000000000000000000000000");
+	array.insert("400000000000000000000000000000000000000000000000000000");
 	array.remove(0);
 	array.remove(1);
 	array.remove(1);
 
 	ASSERT_EQ(array.getSize(), 1);
-	EXPECT_EQ(array[0], "20");
+	EXPECT_EQ(array[0], "200000000000000000000000000000000000000000000000000000");
 }
 
 int main(int argc, char** argv) {
